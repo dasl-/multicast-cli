@@ -1,0 +1,68 @@
+#!/usr/bin/env python3
+
+import argparse
+import socket
+import struct
+import subprocess
+import sys
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Mreceive joins the specified multicast group and prints the data it receives to stdout.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument('--group', '-g', dest='group', action='store', default='239.0.1.23',
+        help="IP address for the multicast group.")
+    parser.add_argument('--port', '-p', dest='port', action='store', type=int, default=1234,
+        help="Port for the multicast group.")
+    parser.add_argument('--recv-buffer', '-b', dest='recv_buffer', action='store', type=int, default=None,
+        help="Socket receive buffer size in bytes. Setting a higher value can help avoid UDP packet loss.")
+    parser.add_argument('--timeout', '-t', dest='timeout', action='store', type=int, default=None,
+        help="Socket timeout in seconds. Default is unlimited.")
+
+    args = parser.parse_args()
+    return args
+
+def make_recv_socket(group, port, recv_buffer, timeout):
+    recv_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    recv_sock.bind((args.group, args.port))
+    mreq = struct.pack("4sl", socket.inet_aton(args.group), socket.INADDR_ANY)
+    recv_sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+
+    if recv_buffer:
+        setup_socket_receive_buffer_configuration(recv_buffer)
+        recv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, recv_buffer)
+
+    if timeout:
+        # set a higher timeout while we wait for the first packet of the video to be sent
+        recv_sock.settimeout(timeout)
+
+    return recv_sock
+
+def setup_socket_receive_buffer_configuration(recv_buffer):
+    max_socket_receive_buffer_size = (subprocess
+        .check_output(
+            "sudo sysctl --values net.core.rmem_max",
+            shell = True,
+            executable = '/usr/bin/bash',
+            stderr = subprocess.STDOUT
+        )
+    )
+    max_socket_receive_buffer_size = int(max_socket_receive_buffer_size.decode().strip())
+    if max_socket_receive_buffer_size < recv_buffer:
+        output = (subprocess
+            .check_output(
+                f"sudo sysctl --write net.core.rmem_max={recv_buffer}",
+                shell = True,
+                executable = '/usr/bin/bash',
+                stderr = subprocess.STDOUT
+            ).decode().strip()
+        )
+
+
+args = parse_args()
+recv_sock = make_recv_socket(args.group, args.port, args.recv_buffer, args.timeout)
+while True:
+    data = recv_sock.recv(4096)
+    print(data, file = sys.stdout)

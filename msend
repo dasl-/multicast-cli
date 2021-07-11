@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+
+import argparse
+import socket
+import sys
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Msend reads from stdin and sends the data via multicast.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument('--group', '-g', dest='group', action='store', default='239.0.1.23',
+        help="IP address for the multicast group.")
+    parser.add_argument('--port', '-p', dest='port', action='store', type=int, default=1234,
+        help="Port for the multicast group.")
+    parser.add_argument('--ttl', '-t', dest='ttl', action='store', type=int, default=2,
+        help="Multicast TTL. For all packets sent, after <TTL> hops on the network the packet will " +
+            "not be re-sent / broadcast (see https://www.tldp.org/HOWTO/Multicast-HOWTO-6.html).")
+    parser.add_argument('--mtu', '-m', dest='mtu', action='store', type=int, default=1472,
+        help="Maximum transmission unit.")
+
+    args = parser.parse_args()
+    return args
+
+def read_data_and_send(send_socket, group, port, mtu):
+    while True:
+        data = sys.stdin.buffer.read(4096)
+        if not data:
+            break
+
+        i = 0
+        while True:
+            chunk = data[i:(i + mtu)]
+            i += mtu
+            if chunk:
+                send(send_socket, group, port, chunk)
+            else:
+                break
+
+def send(send_socket, group, port, data):
+    i = 0
+    max_attempts = 10
+    while True:
+        bytes_sent = send_socket.sendto(data, (group, port))
+        if bytes_sent < len(data): # not sure if this can ever happen...
+            data = data[bytes_sent:]
+        else:
+            break
+
+        i += 1
+        if i > max_attempts:
+            print(f"Unable to send full message ({data}) after {i} attempts.", file = sys.stderr, flush = True)
+            break
+
+
+args = parse_args()
+send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+send_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, args.ttl)
+read_data_and_send(send_socket, args.group, args.port, args.mtu)
