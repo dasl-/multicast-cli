@@ -11,15 +11,15 @@ def parse_args():
         description="Mreceive joins the specified multicast group and prints the data it receives to stdout.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument('--group', '-g', dest='group', action='store', default='239.0.1.23',
+    parser.add_argument('-g', '--group', dest='group', action='store', default='239.0.1.23',
         help="IP address for the multicast group.")
-    parser.add_argument('--port', '-p', dest='port', action='store', type=int, default=1234,
+    parser.add_argument('-p', '--port', dest='port', action='store', type=int, default=1234,
         help="Port for the multicast group.")
-    parser.add_argument('--recv-buffer', '-b', dest='recv_buffer', action='store', type=int, default=None,
+    parser.add_argument('-b', '--recv-buffer', dest='recv_buffer', action='store', type=int, default=None,
         help="Socket receive buffer size in bytes. Setting a higher value can help avoid UDP packet loss.")
-    parser.add_argument('--timeout', '-t', dest='timeout', action='store', type=int, default=None,
+    parser.add_argument('-t', '--timeout', dest='timeout', action='store', type=int, default=None,
         help="Socket timeout in seconds. Default is unlimited.")
-    parser.add_argument('--output-buffering', '-o', dest='output_buffering', action='store', type=int, default=0,
+    parser.add_argument('-o', '--output-buffering', dest='output_buffering', action='store', type=int, default=0,
         help="Same as the 'buffering' argument to python's 'open' function (https://docs.python.org/3/library/functions.html#open). " +
         "Pass 0 to switch buffering off, 1 to select line buffering, and an integer > 1 to indicate the size in bytes of a " +
         "fixed-size chunk buffer")

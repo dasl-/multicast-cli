@@ -11,17 +11,17 @@ def parse_args():
         description="Msend reads from stdin and sends the data via multicast.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument('--group', '-g', dest='group', action='store', default='239.0.1.23',
+    parser.add_argument('-g', '--group', dest='group', action='store', default='239.0.1.23',
         help="IP address for the multicast group.")
-    parser.add_argument('--port', '-p', dest='port', action='store', type=int, default=1234,
+    parser.add_argument('-p', '--port', dest='port', action='store', type=int, default=1234,
         help="Port for the multicast group.")
-    parser.add_argument('--ttl', '-t', dest='ttl', action='store', type=int, default=2,
+    parser.add_argument('-i', '--nic', dest='nic', action='store', default=None,
+        help="Bind multicast traffic to the given NIC, e.g. 'eth0', 'wlan0', etc.")
+    parser.add_argument('-t', '--ttl', dest='ttl', action='store', type=int, default=2,
         help="Multicast TTL. For all packets sent, after <TTL> hops on the network the packet will " +
             "not be re-sent / broadcast (see https://www.tldp.org/HOWTO/Multicast-HOWTO-6.html).")
-    parser.add_argument('--mtu', '-m', dest='mtu', action='store', type=int, default=1472,
+    parser.add_argument('-m', '--mtu', dest='mtu', action='store', type=int, default=1472,
         help="Maximum transmission unit.")
-    parser.add_argument('--nic', '-i', dest='nic', action='store', default=None,
-        help="Bind multicast traffic to the given NIC, e.g. 'eth0', 'wlan0', etc.")
 
     args = parser.parse_args()
     return args
