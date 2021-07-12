@@ -1,0 +1,66 @@
+# multicast-cli
+:toc:
+:toclevels: 5
+
+## summary
+A set of command line tools for sending and receiving multicast data.
+
+## usage
+
+### msend
+....
+usage: msend [-h] [-g GROUP] [-p PORT] [-i NIC] [-t TTL] [-m MTU]
+
+Msend reads from stdin and sends the data via multicast.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -g GROUP, --group GROUP
+                        IP address for the multicast group. (default:
+                        239.0.1.23)
+  -p PORT, --port PORT  Port for the multicast group. (default: 1234)
+  -i NIC, --nic NIC     Bind multicast traffic to the given NIC, e.g. 'eth0',
+                        'wlan0', etc. (default: None)
+  -t TTL, --ttl TTL     Multicast TTL. For all packets sent, after <TTL> hops
+                        on the network the packet will not be re-sent /
+                        broadcast (see https://www.tldp.org/HOWTO/Multicast-
+                        HOWTO-6.html). (default: 2)
+  -m MTU, --mtu MTU     Maximum transmission unit. (default: 1472)
+....
+
+### mreceive
+....
+usage: mreceive [-h] [-g GROUP] [-p PORT] [-b RECV_BUFFER] [-t TIMEOUT]
+                [-o OUTPUT_BUFFERING]
+
+Mreceive joins the specified multicast group and prints the data it receives
+to stdout.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -g GROUP, --group GROUP
+                        IP address for the multicast group. (default:
+                        239.0.1.23)
+  -p PORT, --port PORT  Port for the multicast group. (default: 1234)
+  -b RECV_BUFFER, --recv-buffer RECV_BUFFER
+                        Socket receive buffer size in bytes. Setting a higher
+                        value can help avoid UDP packet loss. (default: None)
+  -t TIMEOUT, --timeout TIMEOUT
+                        Socket timeout in seconds. Default is unlimited.
+                        (default: None)
+  -o OUTPUT_BUFFERING, --output-buffering OUTPUT_BUFFERING
+                        Same as the 'buffering' argument to python's 'open'
+                        function (https://docs.python.org/3/library/functions.
+                        html#open). Pass 0 to switch buffering off, 1 to
+                        select line buffering, and an integer > 1 to indicate
+                        the size in bytes of a fixed-size chunk buffer
+                        (default: 0)
+....
+
+## examples
+....
+% ./mreceive -g 239.0.1.11 -p 4242 &
+[1] 21559
+% echo 'this is a multicast test' | ./msend -g 239.0.1.11 -p 4242 -i eth0
+this is a multicast test
+....
