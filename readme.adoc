@@ -57,6 +57,15 @@ optional arguments:
                         (default: 0)
 ....
 
+## installation
+You may clone this repo, or use this one-liner to install in the current directory:
+....
+% curl -o msend https://raw.githubusercontent.com/dasl-/multicast-cli/main/msend && curl -o mreceive https://raw.githubusercontent.com/dasl-/multicast-cli/main/mreceive && chmod a+x msend mreceive
+....
+The only dependency is python3.
+
+These scripts have only been tested on linux.
+
 ## examples
 ....
 % ./mreceive -g 239.0.1.11 -p 4242 &
