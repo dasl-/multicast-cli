@@ -53,7 +53,7 @@ def setup_socket_receive_buffer_configuration(recv_buffer):
     if max_socket_receive_buffer_size < recv_buffer:
         output = (subprocess
             .check_output(
-                f"sudo sysctl --write net.core.rmem_max={recv_buffer}",
+                f"sudo sysctl --write net.core.rmem_max={int(recv_buffer)}",
                 shell = True,
                 executable = '/usr/bin/bash',
                 stderr = subprocess.STDOUT

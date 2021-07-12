@@ -3,6 +3,8 @@
 import argparse
 import socket
 import sys
+import subprocess
+import shlex
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -18,9 +20,21 @@ def parse_args():
             "not be re-sent / broadcast (see https://www.tldp.org/HOWTO/Multicast-HOWTO-6.html).")
     parser.add_argument('--mtu', '-m', dest='mtu', action='store', type=int, default=1472,
         help="Maximum transmission unit.")
+    parser.add_argument('--nic', '-i', dest='nic', action='store', default=None,
+        help="Bind multicast traffic to the given NIC, e.g. 'eth0', 'wlan0', etc.")
 
     args = parser.parse_args()
     return args
+
+def route_multicast_traffic(nic, group):
+    # Bind multicast traffic to the given NIC.
+    # `|| true` to avoid 'RTNETLINK answers: File exists' if the route has already been added.
+    (subprocess.check_output(
+        f"sudo ip route add {shlex.quote(group)}/32 dev {shlex.quote(nic)} || true",
+        shell = True,
+        executable = '/usr/bin/bash',
+        stderr = subprocess.STDOUT
+    ))
 
 def read_data_and_send(send_socket, group, port, mtu):
     while True:
@@ -54,6 +68,9 @@ def send(send_socket, group, port, data):
 
 
 args = parse_args()
+
 send_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
 send_socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, args.ttl)
+if args.nic:
+    route_multicast_traffic(args.nic, args.group)
 read_data_and_send(send_socket, args.group, args.port, args.mtu)
