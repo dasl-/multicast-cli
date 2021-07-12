@@ -19,6 +19,10 @@ def parse_args():
         help="Socket receive buffer size in bytes. Setting a higher value can help avoid UDP packet loss.")
     parser.add_argument('--timeout', '-t', dest='timeout', action='store', type=int, default=None,
         help="Socket timeout in seconds. Default is unlimited.")
+    parser.add_argument('--output-buffering', '-o', dest='output_buffering', action='store', type=int, default=0,
+        help="Same as the 'buffering' argument to python's 'open' function (https://docs.python.org/3/library/functions.html#open). " +
+        "Pass 0 to switch buffering off, 1 to select line buffering, and an integer > 1 to indicate the size in bytes of a " +
+        "fixed-size chunk buffer")
 
     args = parser.parse_args()
     return args
@@ -63,6 +67,7 @@ def setup_socket_receive_buffer_configuration(recv_buffer):
 
 args = parse_args()
 recv_sock = make_recv_socket(args.group, args.port, args.recv_buffer, args.timeout)
+stdout = open(sys.stdout.fileno(), mode='wb', buffering=args.output_buffering)
 while True:
     data = recv_sock.recv(4096)
-    print(data, file = sys.stdout)
+    stdout.write(data)
